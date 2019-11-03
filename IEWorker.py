@@ -20,6 +20,7 @@ class IEWorker:
     def navigate(self, url):
         self.ie.Navigate(url)
         self.ie_busy()
+        self._get_DOM()
 
     def ie_busy(self):
         while self.ie.Busy:
@@ -29,5 +30,26 @@ class IEWorker:
         self.ie.Quit()
         self.ie = None
 
+    def _get_DOM(self):
+        self._DOM = []
+        elems = self.ie.Document.all
+        for elem in elems:
+            self._DOM.append({
+                'elem': elem,
+                'tag': elem.tagName,
+                'id': elem.getAttribute('id'),
+                'name': elem.getAttribute('name'),
+            })
+
     def get_elements(self, id='', name='', cls='', tag=''):
-        pass
+        elems = self._DOM
+        elems = list(filter(lambda x: x['tag'] == tag.upper() if tag else x, elems))
+        elems = list(filter(lambda x: x['name'] == name if name else x, elems))
+        elems = list(filter(lambda x: x['id'] == id if id else x, elems))
+
+        if len(elems) == 1:
+            elems = elems[0]
+        elif len(elems) == 0:
+            elems = None
+
+        return elems
